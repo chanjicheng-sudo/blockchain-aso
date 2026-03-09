@@ -245,10 +245,10 @@ function filterD3(data) {
     (!f.categories.length || f.categories.includes(r.category)) &&
     (!f.types.length || f.types.includes(r.type)) &&
     (!f.ts.length || f.ts.includes(r.table_stakes)) &&
-    (!f.placements.length || (f.placements.includes('title') && r.in_title === 1) ||
-                             (f.placements.includes('short') && r.in_short === 1) ||
-                             (f.placements.includes('long') && r.in_long === 1) ||
-                             (f.placements.includes('tags') && r.in_tags === 1)) &&
+    (!f.placements.length || (f.placements.includes('title') && r.in_title==='1') ||
+                             (f.placements.includes('short') && r.in_short==='1') ||
+                             (f.placements.includes('long') && r.in_long==='1') ||
+                             (f.placements.includes('tags') && r.in_tags==='1')) &&
     (!f.apps.length || f.apps.includes(r.app_name))
   );
 }
@@ -293,16 +293,17 @@ function renderOverviewTable() {
   // Aggregate: one row per keyword with frequency count
   const kwMap = {};
   d.forEach(r => {
+    const t = parseInt(r.in_title)||0, s = parseInt(r.in_short)||0, l = parseInt(r.in_long)||0, g = parseInt(r.in_tags)||0;
     if (!kwMap[r.keyword]) {
-      kwMap[r.keyword] = { keyword: r.keyword, type: r.type, reach: r.reach, table_stakes: r.table_stakes, freq: 0 };
+      kwMap[r.keyword] = { keyword: r.keyword, type: r.type, table_stakes: r.table_stakes, freq: 0 };
     }
     if (placements.length) {
-      if (placements.includes('title')) kwMap[r.keyword].freq += r.in_title;
-      if (placements.includes('short')) kwMap[r.keyword].freq += r.in_short;
-      if (placements.includes('long')) kwMap[r.keyword].freq += r.in_long;
-      if (placements.includes('tags')) kwMap[r.keyword].freq += r.in_tags;
+      if (placements.includes('title')) kwMap[r.keyword].freq += t;
+      if (placements.includes('short')) kwMap[r.keyword].freq += s;
+      if (placements.includes('long')) kwMap[r.keyword].freq += l;
+      if (placements.includes('tags')) kwMap[r.keyword].freq += g;
     } else {
-      kwMap[r.keyword].freq += r.in_title + r.in_short + r.in_long + r.in_tags;
+      kwMap[r.keyword].freq += t + s + l + g;
     }
   });
 
@@ -314,7 +315,7 @@ function renderOverviewTable() {
     ? 'Frequency (' + placements.map(v => ({title:'Title',short:'Short',long:'Long',tags:'Tags'})[v]).join('+') + ')'
     : 'Frequency';
 
-  let html = `<table><thead><tr><th>Keyword</th><th>Type</th><th>Reach</th><th>${freqLabel}</th><th>BC Rank</th><th>Table Stakes</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>Keyword</th><th>Type</th><th>${freqLabel}</th><th>BC Rank</th><th>Table Stakes</th></tr></thead><tbody>`;
   kwList.forEach(r => {
     const cls = r.table_stakes === 'TRUE' ? 'ts-row' : '';
     const rank = bcRankLookup[r.keyword];
