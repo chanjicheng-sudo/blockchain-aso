@@ -91,11 +91,17 @@ tr.notfound td { background: #fff3f0; }
     <div class="multi-select" id="ms-app" data-placeholder="All Apps"></div>
   </div>
   <div class="filter-group" style="min-width:auto; flex:0;">
-    <label>Gap Finder</label>
-    <label class="toggle-switch" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; color:#333; margin-top:2px;">
-      <input type="checkbox" id="cb-exclude-bc" onchange="refresh()" style="width:16px; height:16px; cursor:pointer;">
-      <span>Hide BC keywords</span>
-    </label>
+    <label>BC Keywords</label>
+    <div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; color:#333;">
+        <input type="checkbox" id="cb-only-bc" onchange="if(this.checked) document.getElementById('cb-exclude-bc').checked=false; refresh()" style="width:16px; height:16px; cursor:pointer;">
+        <span>Only BC keywords</span>
+      </label>
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; color:#333;">
+        <input type="checkbox" id="cb-exclude-bc" onchange="if(this.checked) document.getElementById('cb-only-bc').checked=false; refresh()" style="width:16px; height:16px; cursor:pointer;">
+        <span>Hide BC keywords</span>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -215,6 +221,7 @@ function filterSubtitle() {
   if (msState['ms-placement'].length) parts.push('Placement: ' + msState['ms-placement'].map(v => ({title:'Title',short:'Short Desc',long:'Long Desc'})[v]).join(', '));
   if (msState['ms-app'].length) parts.push('App: ' + (msState['ms-app'].length > 3 ? msState['ms-app'].length + ' apps' : msState['ms-app'].join(', ')));
   if (document.getElementById('cb-exclude-bc').checked) parts.push('Excluding BC keywords');
+  if (document.getElementById('cb-only-bc').checked) parts.push('Only BC keywords');
   return parts.length ? '<br><span style="font-size:11px;color:#888;">Filtered by: ' + parts.join(' | ') + '</span>' : '';
 }
 
@@ -228,6 +235,7 @@ function getFilters() {
     placements: msState['ms-placement'],
     apps: msState['ms-app'],
     excludeBC: document.getElementById('cb-exclude-bc').checked,
+    onlyBC: document.getElementById('cb-only-bc').checked,
   };
 }
 
@@ -238,7 +246,7 @@ function getBCKeywords() {
 
 function filterD3(data) {
   const f = getFilters();
-  const bcKws = f.excludeBC ? getBCKeywords() : null;
+  const bcKws = (f.excludeBC || f.onlyBC) ? getBCKeywords() : null;
   return data.filter(r =>
     (!f.themes.length || f.themes.includes(r.theme)) &&
     (!f.categories.length || f.categories.includes(r.category)) &&
@@ -249,7 +257,8 @@ function filterD3(data) {
                              (f.placements.includes('long') && r.in_long==='1') ||
                              (f.placements.includes('tags') && r.in_tags==='1')) &&
     (!f.apps.length || f.apps.includes(r.app_name)) &&
-    (!bcKws || !bcKws.has(r.keyword))
+    (!f.excludeBC || !bcKws.has(r.keyword)) &&
+    (!f.onlyBC || bcKws.has(r.keyword))
   );
 }
 
