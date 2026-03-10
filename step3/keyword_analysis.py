@@ -341,7 +341,7 @@ def main():
     print(f"Themed tokens: {len(themed_tokens)}, Discarded (no theme): {unthemed}")
 
     # ── Compute per-keyword stats ────────────────────────────────────────
-    table_stakes_threshold = num_competitors * 0.6
+    table_stakes_threshold = num_competitors * 0.4
 
     keyword_stats = {}
     for token, theme in themed_tokens.items():
